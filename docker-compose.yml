@@ -1,0 +1,67 @@
+
+version: '3.8'
+
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend-main
+    environment:
+      - REACT_APP_API_URL=http://backend-main:4000
+
+  backend-main:
+    build: ./backend-main
+    ports:
+      - "4000:4000"
+    depends_on:
+      - postgres
+      - eco-calculator
+      - recommendation-service
+    environment:
+      - DATABASE_URL=postgres://user:password@postgres:5432/ecodb
+      - JWT_SECRET=your_jwt_secret
+      - NODE_ENV=production
+
+  eco-calculator:
+    build: ./eco-calculator-service
+    ports:
+      - "4001:4001"
+    depends_on: 
+      - postgres
+
+  recommendation-service:
+    build: ./recommendation-service
+    ports:
+      - "4002:4002"
+    depends_on:
+      - postgres
+
+  notification-service:
+    build: ./notification-service
+    ports:
+      - "4003:4003"
+    depends_on:
+      - postgres
+    environment:
+      - REDIS_URL=redis://redis:6379
+
+  postgres:
+    image: postgres:13
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=ecodb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:6
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:

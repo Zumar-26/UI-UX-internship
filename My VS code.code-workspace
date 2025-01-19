@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "../../Users/PMLS/Documents/My VS code"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"new": "cpp",
+			"vector": "cpp"
+		}
+	}
+}

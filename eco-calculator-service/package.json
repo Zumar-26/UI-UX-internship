@@ -1,0 +1,50 @@
+// eco-calculator-service/package.json
+{
+  "name": "eco-calculator-service",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "axios": "^0.24.0",
+    "dotenv": "^10.0.0",
+    "winston": "^3.3.3"
+  }
+}
+
+// eco-calculator-service/src/index.js
+const express = require('express');
+const app = express();
+
+app.use(express.json());
+
+const calculators = {
+  carbon: require('./calculators/carbon'),
+  water: require('./calculators/water'),
+  waste: require('./calculators/waste'),
+  energy: require('./calculators/energy')
+};
+
+app.post('/calculate/:type', (req, res) => {
+  const { type } = req.params;
+  const data = req.body;
+  
+  if (!calculators[type]) {
+    return res.status(400).json({ error: 'Invalid calculator type' });
+  }
+
+  try {
+    const result = calculators[type].calculate(data);
+    res.json({ result });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+const PORT = process.env.PORT || 4001;
+app.listen(PORT, () => {
+  console.log(`Eco Calculator Service running on port ${PORT}`);
+});

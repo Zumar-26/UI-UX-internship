@@ -1,0 +1,92 @@
+// notification-service/package.json
+{
+  "name": "notification-service",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^4.4.0",
+    "redis": "^4.0.0",
+    "nodemailer": "^6.7.2",
+    "twilio": "^3.71.3"
+  }
+}
+
+// notification-service/src/index.js
+const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
+const NotificationManager = require('./NotificationManager');
+
+const app = express();
+const server = http.createServer(app);
+const io = socketIo(server);
+
+const notificationManager = new NotificationManager();
+
+app.use(express.json());
+
+// WebSocket connection handling
+io.on('connection', (socket) => {
+  console.log('Client connected');
+  
+  socket.on('subscribe', (userId) => {
+    socket.join(`user-${userId}`);
+  });
+  
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+  });
+});
+
+// REST API endpoints
+app.post('/notify', async (req, res) => {
+  try {
+    const { userId, type, message } = req.body;
+    await notificationManager.sendNotification(userId, type, message);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Notification Manager implementation
+// notification-service/src/NotificationManager.js
+class NotificationManager {
+  async sendNotification(userId, type, message) {
+    switch (type) {
+      case 'email':
+        await this.sendEmail(userId, message);
+        break;
+      case 'sms':
+        await this.sendSMS(userId, message);
+        break;
+      case 'push':
+        await this.sendPushNotification(userId, message);
+        break;
+      default:
+        throw new Error('Invalid notification type');
+    }
+  }
+
+  async sendEmail(userId, message) {
+    // Email sending implementation
+  }
+
+  async sendSMS(userId, message) {
+    // SMS sending implementation
+  }
+
+  async sendPushNotification(userId, message) {
+    // Push notification implementation
+  }
+}
+
+const PORT = process.env.PORT || 4003;
+server.listen(PORT, () => {
+  console.log(`Notification Service running on port ${PORT}`);
+});
